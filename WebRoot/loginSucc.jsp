@@ -1,4 +1,5 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ page language="java" import="Portal.Action.*" %>
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
@@ -22,37 +23,50 @@ String radiusPath = request.getScheme()+"://"+request.getServerName()+":"+1817+"
     <link type="text/css" href="css/index.css" rel="stylesheet" />
 </head>
  <%
-    String username=(String)session.getAttribute("username");
-    String password=(String)session.getAttribute("password");
-    String ip=(String)session.getAttribute("ip");
-    String message="";
-    String msg=(String)request.getAttribute("msg");
-    if(msg!=null){
-    	message=msg;
-    }
-    
-    if(username==null){
-    	request.setAttribute("msg", "您还没有登录，请先登录！");
-    	request.getRequestDispatcher("/index.jsp").forward(request, response);
-    	return;
-    }
-    else{
-    %>
+ 	String indexUrl = "/index.jsp?" + request.getQueryString();
+ 	 String loginOutUrl = path + "/LoginOut?" + request.getQueryString();
+ 	String ip = Tools.getUserIpFromUrl(request.getParameterValues("userip"));
+ 	String message="";
+     String msg=(String)request.getAttribute("msg");
+     if(msg!=null){
+     	message=msg;
+     }
+     
+ 	if (ip == null) {
+ 		System.out.println("loginSucc.jsp userIp is null, redirect to " + Tools.redirectUrl);
+ 		response.sendRedirect(Tools.redirectUrl);
+ 		return;
+ 	}
+ 	
+/* 	String sessionIp = (String) session.getAttribute("ip");
+	if(!ip.equals(sessionIp)){
+		request.setAttribute("msg", "您还没有登录，请先登录！");
+ 		request.getRequestDispatcher(indexUrl).forward(request, response);
+	} */
+
+ 	String username = (String) session.getAttribute("username");
+ 	System.out.println("login user : " + username);
+ 	if (username == null) {
+ 		request.setAttribute("msg", "您还没有登录，请先登录！");
+ 		request.getRequestDispatcher(indexUrl).forward(request, response);
+ 		return;
+ 	} else {
+ %>
 <body>
     <div id="page-content">
         <div id="login-page">
             <div id="logo">
-                <a href="<%=basePath%>"><img alt="LaterThis" src="images/logo.png" /></a>
+                <a href="<%=basePath%>"></a>
             </div>
-           <form id="loginForm" action="<%=path%>/LoginOut" method="post">
+           <form id="loginForm" action="<%=loginOutUrl%>" method="post">
               <div id="success-login">
               <p>
                         <label style="text-align: center ;"><font color="red"><b><%=message%></b></font></label> <br/>
                     </p>
 			        <p>
-			          <label for=success-user>您已登录成功，可以连接办公网，请不要关闭该窗口！！欢迎您：</LABEL><span id="success-user" class="id-note"><font color="red"><b><%=username%></b></font></span>
+			          <label for=success-user>您已登录成功，可以连接办公网，请不要关闭该窗口！！欢迎您：</label><span id="success-user" class="id-note"><font color="red"><b><%=username%></b></font></span>
 			          <br/>
-			           <label for=success-user>IP地址：</LABEL><span id="success-user" class="id-note"><font color="red"><b><%=ip%></b></font></span>
+			           <label for=success-user>IP地址：</label><span id="success-user" class="id-note"><font color="red"><b><%=ip%></b></font></span>
 			           <br/>
 			        </p>
 			        <p>
@@ -61,16 +75,9 @@ String radiusPath = request.getScheme()+"://"+request.getServerName()+":"+1817+"
 			      </div>
               </form>
               <form id="Form" action="<%=radiusPath%>" method="post">
-              <div id="success-login">
-              <p>
-               <input name="username" type="hidden" value="<%=username%>" />
-               <input name="password" type="hidden" value="<%=password%>" />
-			          <input id="submit" class="button" type="submit" value="点击查询用户信息" name="submit" />  
-			        </p>
-			      </div>
-              </form>
+               </form>
                 <p id="signup">
-                   Copyright &copy; 2014 - 2015 <a href="<%=basePath%>">PortalServer服务-李硕</a>.  All Rights Reserved.
+                   Copyright &copy; 2014 - 2018 <a href="<%=basePath%>">PortalServer</a>.  All Rights Reserved.
                </p>
         </div>
     </div>

@@ -14,10 +14,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import Portal.Action.Tools;
 import Portal.Server.Action;
 
 public class LoginOut extends HttpServlet {
-
+	private static final long serialVersionUID = 1L;
 	/**
 	 * The doGet method of the servlet. <br>
 	 *
@@ -46,10 +48,18 @@ public class LoginOut extends HttpServlet {
 		String authType;	
 		String timeoutSec;	
 		String portalVer;
+		String indexUrl = "/index.jsp?" + request.getQueryString();
 		String cfgPath = request.getRealPath("/");//获取服务器的webroot路径
 		FileInputStream fis = null;
 		Properties config=new Properties();
 		File file = new File(cfgPath+"config.properties");
+		String userIp = Tools.getUserIpFromUrl(request.getParameterValues("userip"));
+		if (userIp == null)
+		{
+			System.out.println("LoginOut.java userIp is null, redirect to " + Tools.redirectUrl);
+			response.sendRedirect(Tools.redirectUrl);
+			return;
+		}
 		try {
 			fis = new FileInputStream(file);
 		} catch (FileNotFoundException e1) {
@@ -57,7 +67,7 @@ public class LoginOut extends HttpServlet {
 			e1.printStackTrace();
 			System.out.println("config.properties 配置文件不存在！！");
 			request.setAttribute("msg", "config.properties 配置文件不存在！！");
-	    	request.getRequestDispatcher("/index.jsp").forward(request, response);
+	    	request.getRequestDispatcher(indexUrl).forward(request, response);
 	    	return;
 		}
 		  
@@ -77,27 +87,25 @@ public class LoginOut extends HttpServlet {
 			e.printStackTrace();
 			System.out.println("config.properties 数据库配置文件读取失败！！");
 			request.setAttribute("msg", "config.properties 数据库配置文件读取失败！！");
-	    	request.getRequestDispatcher("/index.jsp").forward(request, response);
+	    	request.getRequestDispatcher(indexUrl).forward(request, response);
 	    	return;
 		}
 		System.out.println(config);
-		
-		
-		
-		
+				
 		try {
 			HttpSession session=request.getSession();
-			String ip=(String)session.getAttribute("ip");
+			String ip= Tools.getUserIpFromUrl(request.getParameterValues("userip"));
+			String sessionIp = (String)session.getAttribute("ip");
 			String username=(String)session.getAttribute("username");
 			String password=(String)session.getAttribute("password");
 			int info=99;
-			if(!(ip.equals("")||ip==null)){
+			if(!(ip.equals("")||ip==null||!ip.equals(sessionIp))){
 				info=new Action().Method("LoginOut",username, password, ip, bas_ip, bas_port, portalVer, authType, timeoutSec, sharedSecret);
 			}else{
 				session.removeAttribute("username");
 				session.removeAttribute("password");
-				request.setAttribute("msg", "退出异常，请重新登录后再退出！");
-				request.getRequestDispatcher("/index.jsp").forward(request, response);
+				request.setAttribute("msg", "退出异常，请重新登录");
+				request.getRequestDispatcher(indexUrl).forward(request, response);
 			}
 			
 			
@@ -105,7 +113,7 @@ public class LoginOut extends HttpServlet {
 				session.removeAttribute("username");
 				session.removeAttribute("password");
 				request.setAttribute("msg", "用户退出登录！");
-				request.getRequestDispatcher("/index.jsp").forward(request, response);
+				request.getRequestDispatcher(indexUrl).forward(request, response);
 			}
 			else{
 				if(info==10){
@@ -119,16 +127,16 @@ public class LoginOut extends HttpServlet {
 				}else if(info==99){
 					session.removeAttribute("username");
 					session.removeAttribute("password");
-					request.setAttribute("msg", "未知错误！！请联系作者，QQ:25901875");
+					request.setAttribute("msg", "未知错误！！");
 				}
 				
-				RequestDispatcher qr=request.getRequestDispatcher("/index.jsp");
+				RequestDispatcher qr=request.getRequestDispatcher(indexUrl);
 				qr.forward(request, response);
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
 			request.setAttribute("msg", "退出异常，请重新登录后再退出！");
-			request.getRequestDispatcher("/index.jsp").forward(request, response);
+			//request.getRequestDispatcher(indexUrl).forward(request, response);
 		}
 		
 		

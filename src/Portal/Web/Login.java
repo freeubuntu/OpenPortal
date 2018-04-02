@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.RequestDispatcher;
@@ -13,38 +14,24 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import Portal.Action.Tools;
 import Portal.Server.Action;
 
 public class Login extends HttpServlet {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		
-		try {
-			HttpSession session=request.getSession();
-			String username=(String)session.getAttribute("username");
-			String password=(String)session.getAttribute("password");
-		    String ip=(String)session.getAttribute("ip");
-		    if((ip.equals("")||ip==null)||(username.equals("")||username==null)||(password.equals("")||password==null)){
-		    	request.setAttribute("msg", "非法访问！");
-		    	request.getRequestDispatcher("/index.jsp").forward(request, response);
-		    	return;
-		    }else{
-		    	request.setAttribute("msg", "请不要重复刷新！");
-		    	request.getRequestDispatcher("/index.jsp").forward(request, response);
-		    	return;
-		    }
-			
-		} catch (Exception e) {
-			// TODO: handle exception
-			request.setAttribute("msg", "请重新登录！");
-			request.getRequestDispatcher("/index.jsp").forward(request, response);
-			return;
-		}
-		
+		request.setAttribute("msg", "请不要重复刷新！");
+		request.getRequestDispatcher("/index.jsp").forward(request, response);
 	}
+	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -57,28 +44,34 @@ public class Login extends HttpServlet {
 		 */
 		request.setCharacterEncoding("utf-8");
 		String sessionCode = (String) request.getSession().getAttribute("session_vcode");
+		String indexUrl = "/index.jsp?" + request.getQueryString();
+		String loginSuccUrl = "/loginSucc.jsp?"+request.getQueryString();
 		String paramCode = request.getParameter("vcode");
 		String username=request.getParameter("username");
 		String password=request.getParameter("password");
-		String ip=request.getRemoteAddr();//获取客户端的ip
-		
+		String ip = Tools.getUserIpFromUrl(request.getParameterValues("userip"));
+		if (ip == null)
+		{
+			System.out.println("Login.java userIp is null, redirect to " + Tools.redirectUrl);
+			response.sendRedirect(Tools.redirectUrl);
+			return;
+		}
 		if((username.equals(""))||(username==null)) {
 			request.setAttribute("msg", "用户名不能为空！");
-			request.getRequestDispatcher("/index.jsp").forward(request, response);
+			request.getRequestDispatcher(indexUrl).forward(request, response);
 			return;
 		}
 		if((password.equals(""))||(password==null)) {
 			request.setAttribute("msg", "密码不能为空！");
-			request.getRequestDispatcher("/index.jsp").forward(request, response);
+			request.getRequestDispatcher(indexUrl).forward(request, response);
 			return;
 		}
 		
 		if(!paramCode.equalsIgnoreCase(sessionCode)) {
 			request.setAttribute("msg", "验证码错误！");
-			request.getRequestDispatcher("/index.jsp").forward(request, response);
+			request.getRequestDispatcher(indexUrl).forward(request, response);
 			return;
 		}
-		
 		
 		String bas_ip;
 		String bas_port;
@@ -98,7 +91,7 @@ public class Login extends HttpServlet {
 			e1.printStackTrace();
 			System.out.println("config.properties 配置文件不存在！！");
 			request.setAttribute("msg", "config.properties 配置文件不存在！！");
-	    	request.getRequestDispatcher("/index.jsp").forward(request, response);
+	    	request.getRequestDispatcher(indexUrl).forward(request, response);
 	    	return;
 		}
 		  
@@ -118,27 +111,25 @@ public class Login extends HttpServlet {
 			e.printStackTrace();
 			System.out.println("config.properties 数据库配置文件读取失败！！");
 			request.setAttribute("msg", "config.properties 数据库配置文件读取失败！！");
-	    	request.getRequestDispatcher("/index.jsp").forward(request, response);
+	    	request.getRequestDispatcher(indexUrl).forward(request, response);
 	    	return;
 		}finally{
 			fis.close();
 		}
 		System.out.println(config);
 		
-		
 		int info=new Action().Method("Login",username, password, ip, bas_ip, bas_port, portalVer, authType, timeoutSec, sharedSecret);
 		if(info==0 || info==22){
 			Cookie cookie=new Cookie("uname", username);
 			cookie.setMaxAge(60*60*24);
 			response.addCookie(cookie);
-			HttpSession session=request.getSession();
+			request.setAttribute("msg", "登录成功！");
+			HttpSession session = request.getSession();
+			session.setAttribute("ip", ip);
 			session.setAttribute("username", username);
 			session.setAttribute("password", password);
-			session.setAttribute("ip", ip);
-			request.setAttribute("msg", "登录成功！");
-//			request.getRequestDispatcher("/index.jsp").forward(request, response);
 			String path = request.getContextPath();
-			response.sendRedirect(response.encodeUrl(path+"/loginSucc.jsp"));
+			response.sendRedirect(response.encodeUrl(path+loginSuccUrl));
 		}
 		else{
 			if(info==01){
@@ -166,10 +157,10 @@ public class Login extends HttpServlet {
 			}else if(info==66){
 				request.setAttribute("msg", "暂时不支持PAP认证方式  ！！");
 			}else if(info==99){
-				request.setAttribute("msg", "未知错误！！请联系作者，QQ:25901875");
+				request.setAttribute("msg", "未知错误！！");
 			}
 			
-			RequestDispatcher qr=request.getRequestDispatcher("/index.jsp");
+			RequestDispatcher qr=request.getRequestDispatcher(indexUrl);
 			qr.forward(request, response);
 		}
 	}

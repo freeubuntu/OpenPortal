@@ -1,4 +1,6 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ page language="java" import="Portal.Action.*" %>
+
 <%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
@@ -32,45 +34,45 @@ function _change() {
 </script>
 	
 </head>
-<% 
-  String username=(String)session.getAttribute("username");
-  String ip=(String)session.getAttribute("ip");
-  if(username!=null&&ip!=null){
-  	request.getRequestDispatcher("/loginSucc.jsp").forward(request, response);
-  	return;
-  }else{
-  %>
-	<%
-    String uname="";
-    Cookie[] cs=request.getCookies();
-    if(cs!=null){
-    	for(Cookie c:cs){
-    		if("uname".equals(c.getName())){
-    			uname=c.getValue();
-    		}
-    		
-    	}
-    }
-    
-    
-    String message="";
-    String msg=(String)request.getAttribute("msg");
-    if(msg!=null){
-    	message=msg;
-    }
-    %>
+<%
+	String ip = Tools.getUserIpFromUrl(request.getParameterValues("userip"));
+	if (ip == null) {
+		System.out.println("index.jsp userIp is null, redirect to " + Tools.redirectUrl);
+		response.sendRedirect(Tools.redirectUrl);
+		return;
+	}
+  	
+	String uname = "";
+	Cookie[] cs = request.getCookies();
+	if (cs != null) {
+		for (Cookie c : cs) {
+			if ("uname".equals(c.getName())) {
+				uname = c.getValue();
+			}
+		}
+	}
+
+	String message = "";
+	String msg = (String) request.getAttribute("msg");
+	if (msg != null) {
+		message = msg;
+	}
+	String loginpath = path + "/Login?" + request.getQueryString();
+%>
 <body>
     <div id="page-content">
         <div id="login-page">
             <div id="logo">
-                <a href="<%=basePath%>"><img alt="LaterThis" src="images/logo.png" /></a>
+                <a href="<%=basePath%>"></a>
             </div>
-           
   
-            <form id="loginForm" action="<%=path%>/Login" method="post">
+            <form id="loginForm" action="<%=loginpath%>" method="post">
                 <div id="normal-login">
                     <p>
                         <label style="text-align: center ;"><font color="red"><b><%=message%></b></font></label> <br/>
+                    </p>
+                    <p>
+                        <label style="text-align: center ;">IP地址：<font color="red"><b><%=ip%></b></font></label> <br/>
                     </p>
                     <p style="padding-top:5px;">
                         <label for="username">用户名</label> <br/>
@@ -93,10 +95,9 @@ function _change() {
                 </div>
                </form>
                 <p id="signup">
-                   Copyright &copy; 2014 - 2015 <a href="<%=basePath%>">PortalServer服务-李硕</a>.  All Rights Reserved.
+                   Copyright &copy; 2014 - 2018 <a href="<%=basePath%>">PortalServer服务</a>.  All Rights Reserved.
                </p>
         </div>
     </div>
 </body>
-<%} %>
 </html>
