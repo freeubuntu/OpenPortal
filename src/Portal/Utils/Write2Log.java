@@ -6,6 +6,7 @@ import java.io.IOException;
 
 public class Write2Log {
 	public static void Wr2Log(String aaa) {
+		System.out.println(aaa);
 		String path = System.getProperty("user.dir");
 		File file = new File(path + "log.txt");
 		if (!file.exists()) {

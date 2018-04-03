@@ -24,26 +24,29 @@ String radiusPath = request.getScheme()+"://"+request.getServerName()+":"+1817+"
 </head>
  <%
  	String indexUrl = "/index.jsp?" + request.getQueryString();
- 	 String loginOutUrl = path + "/LoginOut?" + request.getQueryString();
- 	String ip = Tools.getUserIpFromUrl(request.getParameterValues("userip"));
- 	String message="";
-     String msg=(String)request.getAttribute("msg");
-     if(msg!=null){
-     	message=msg;
-     }
-     
+  	String loginOutUrl = path + "/LoginOut?" + request.getQueryString();
+  	String ip = Tools.getUserIpFromUrl(request.getParameterValues("userip"));
+  	String message = "";
+  	String msg = (String) request.getAttribute("msg");
+
  	if (ip == null) {
  		System.out.println("loginSucc.jsp userIp is null, redirect to " + Tools.redirectUrl);
- 		response.sendRedirect(Tools.redirectUrl);
+ 		response.sendRedirect(Tools.getRedirectUrl(request));
  		return;
  	}
- 	
-/* 	String sessionIp = (String) session.getAttribute("ip");
-	if(!ip.equals(sessionIp)){
-		request.setAttribute("msg", "您还没有登录，请先登录！");
- 		request.getRequestDispatcher(indexUrl).forward(request, response);
-	} */
 
+  	if (msg != null) {
+  		message = msg;
+  	}
+ 	/* 	String sessionIp = (String) session.getAttribute("ip");
+ 		if(!ip.equals(sessionIp)){
+ 			request.setAttribute("msg", "您还没有登录，请先登录！");
+ 	 		request.getRequestDispatcher(indexUrl).forward(request, response);
+ 		} */
+
+ 	/* login success-> set username session 
+ 		logout -> clear username session
+ 	*/
  	String username = (String) session.getAttribute("username");
  	System.out.println("login user : " + username);
  	if (username == null) {

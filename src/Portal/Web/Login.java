@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.RequestDispatcher;
@@ -17,6 +16,7 @@ import javax.servlet.http.HttpSession;
 
 import Portal.Action.Tools;
 import Portal.Server.Action;
+import Portal.Utils.Write2Log;
 
 public class Login extends HttpServlet {
 
@@ -52,8 +52,8 @@ public class Login extends HttpServlet {
 		String ip = Tools.getUserIpFromUrl(request.getParameterValues("userip"));
 		if (ip == null)
 		{
-			System.out.println("Login.java userIp is null, redirect to " + Tools.redirectUrl);
-			response.sendRedirect(Tools.redirectUrl);
+			Write2Log.Wr2Log("Login.java userIp is null, redirect to " + Tools.redirectUrl);
+			response.sendRedirect(Tools.getRedirectUrl(request));
 			return;
 		}
 		if((username.equals(""))||(username==null)) {
@@ -89,7 +89,7 @@ public class Login extends HttpServlet {
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-			System.out.println("config.properties 配置文件不存在！！");
+			Write2Log.Wr2Log("config.properties 配置文件不存在！！");
 			request.setAttribute("msg", "config.properties 配置文件不存在！！");
 	    	request.getRequestDispatcher(indexUrl).forward(request, response);
 	    	return;
@@ -109,7 +109,7 @@ public class Login extends HttpServlet {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			System.out.println("config.properties 数据库配置文件读取失败！！");
+			Write2Log.Wr2Log("config.properties 数据库配置文件读取失败！！");
 			request.setAttribute("msg", "config.properties 数据库配置文件读取失败！！");
 	    	request.getRequestDispatcher(indexUrl).forward(request, response);
 	    	return;

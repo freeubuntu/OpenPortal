@@ -1,5 +1,6 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
 <%@ page language="java" import="Portal.Action.*" %>
+<%@ page language="java" import="Portal.Utils.*" %>
 
 <%
 String path = request.getContextPath();
@@ -35,13 +36,15 @@ function _change() {
 	
 </head>
 <%
+	/* check if url contains userip param */
 	String ip = Tools.getUserIpFromUrl(request.getParameterValues("userip"));
 	if (ip == null) {
-		System.out.println("index.jsp userIp is null, redirect to " + Tools.redirectUrl);
-		response.sendRedirect(Tools.redirectUrl);
+		Write2Log.Wr2Log("index.jsp userIp is null, redirect to " + Tools.getRedirectUrl(request));
+		response.sendRedirect(Tools.getRedirectUrl(request));
 		return;
 	}
   	
+	/* show username in cookies */
 	String uname = "";
 	Cookie[] cs = request.getCookies();
 	if (cs != null) {
@@ -52,11 +55,13 @@ function _change() {
 		}
 	}
 
+	/* show msg from other pages */
 	String message = "";
 	String msg = (String) request.getAttribute("msg");
 	if (msg != null) {
 		message = msg;
 	}
+	
 	String loginpath = path + "/Login?" + request.getQueryString();
 %>
 <body>
